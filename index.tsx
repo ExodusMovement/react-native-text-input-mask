@@ -36,6 +36,7 @@ const TextInputMask = forwardRef<Handles, TextInputMaskProps>(({
     autoskip = true,
     autocompleteOnFocus = true,
     rightToLeft,
+    normalizeMasked,
     ...rest
 }, ref) => {
   const input = useRef<TextInput>(null)
@@ -85,12 +86,13 @@ const TextInputMask = forwardRef<Handles, TextInputMaskProps>(({
           value={maskedValue}
           multiline={primaryFormat && Platform.OS === 'ios' ? false : multiline}
           onChangeText={async (masked) => {
-            setMaskedValue(masked)
+            const maskedNormalized = normalizeMasked ? normalizeMasked(masked) : masked
+            setMaskedValue(maskedNormalized)
             if (primaryFormat) {
-              const unmasked = await unmask(primaryFormat, masked, true)
-              onChangeText?.(masked, unmasked)
+              const unmasked = await unmask(primaryFormat, maskedNormalized, true)
+              onChangeText?.(maskedNormalized, unmasked)
             } else {
-              onChangeText?.(masked)
+              onChangeText?.(maskedNormalized)
             }
           }}
       />
@@ -242,6 +244,7 @@ interface Notation {
 export interface TextInputMaskProps extends TextInputProps, MaskOptions{
   mask?: string
   onChangeText?: (formatted: string, extracted?: string) => void
+  normalizeMasked?: (masked: string) => string
 }
 
 interface Handles {
